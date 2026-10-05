@@ -34,29 +34,56 @@ def check_event(service,calender_id, target_date):
             for event in events:
                 # Get the start time (handles both all-day and specific-time events)
                 start = event['start'].get('dateTime', event['start'].get('date'))
-                print(f"{start} - {event['summary']}")
+                # print(f"{start} - {event['summary']}")
+
+            return events
                 
     except Exception as e:
         print(f"An error occurred while fetching events: {e}")
 
 def create_new_event(service, calendar_id, summary,start_time,end_time,description=""):
-     event_body={
-          'summary':summary,
-          'description':description,
-          'start':{
-               'dateTime':start_time.isoformat()
-          },
-          'end':{
-               'dateTime': end_time.isoformat()
-          }
-     }
-     print(f"\n--- Creating Event: '{summary}' ---")
-     try:
-        created_event = service.events().insert(
-            calendarId=calendar_id, body=event_body).execute()
-        print(f"Success! Event created: {created_event.get('htmlLink')}")
-     except Exception as e:
-        print(f"Failed to create event: {e}")
+     events=check_event(service, MY_CALENDAR_ID, start_time)
+     slot_empty=True
+     for event in events:
+         if datetime.fromisoformat(event['start'].get('dateTime', event['start'].get('date')))==start_time:
+                slot_empty=False
+                print("alraedy booked")
+     if slot_empty:
+        event_body={
+            'summary':summary,
+            'description':description,
+            'start':{
+                'dateTime':start_time.isoformat()
+            },
+            'end':{
+                'dateTime': end_time.isoformat()
+            }
+        }
+        print(f"\n--- Creating Event: '{summary}' ---")
+        try:
+            created_event = service.events().insert(
+                calendarId=calendar_id, body=event_body).execute()
+            print(f"Success! Event created: {created_event.get('htmlLink')}")
+        except Exception as e:
+            print(f"Failed to create event: {e}")
+
+def delete_appointment(service, calender_id,target_date,summary):
+    events=check_event(service, calender_id,target_date)
+    if not events:
+        print("event does not exists")
+    else:
+        event_id=False
+        for event in events:
+            if event["summary"]==summary:
+                event_id=event["id"]
+        if event_id:
+            try:
+                service.events().delete(calendarId=calender_id, eventId=event_id).execute()
+                print(f"Successfully deleted event with ID: {event_id}")
+            except Exception as error:
+                print(f"An error occurred while deleting: {error}")
+        else:
+            print("no such appointment exists")
      
 def main():
     # Get the authenticated service object once
@@ -64,16 +91,15 @@ def main():
 
     # --- Test Function 1: Check Events ---
     # Set the time to exactly midnight to get the whole day
-    target_date = datetime(2026, 10, 6,tzinfo=ZoneInfo("Asia/Kolkata"))  #yyyy,mm,dd
+    target_date = datetime(2026, 10, 7,tzinfo=ZoneInfo("Asia/Kolkata"))  #yyyy,mm,dd
     check_event(service, MY_CALENDAR_ID, target_date)
 
     # --- Test Function 2: Create Event ---
-    # Create an event for tomorrow starting at 10:00 AM UTC and ending at 11:00 AM UTC
+    # Create an event for tomorrow starting at 10:00 AM 11:00 AM 
     now = datetime.now(ZoneInfo("Asia/Kolkata"))
     tomorrow = (now + timedelta(days=1)).replace(hour=10,minute=0,second=0,microsecond=0)
     event_start = tomorrow
     event_end = tomorrow + timedelta(hours=1)
-    
     create_new_event(
         service=service, 
         calendar_id=MY_CALENDAR_ID, 
@@ -82,6 +108,9 @@ def main():
         end_time=event_end,
         description="Testing my new modular functions!"
     )
+    #Function 3 delte appointment
+    summary="Automated Python Meeting"
+    delete_appointment(service, MY_CALENDAR_ID, target_date,summary)
 
 
 if __name__ == '__main__':
