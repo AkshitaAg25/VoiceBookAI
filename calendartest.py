@@ -1,11 +1,11 @@
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 SERVICE_ACCOUNT_FILE = 'calender-45-c95e4ef20deb.json'
 
-# Replace this with your actual personal email address!
 MY_CALENDAR_ID = 'akshitaagarwal718@gmail.com' 
 
 def authenticate_service_account():
@@ -14,12 +14,12 @@ def authenticate_service_account():
     return build('calendar', 'v3', credentials=creds)
 
 def check_event(service,calender_id, target_date):
-    time_min= target_date.isoformat()+ 'Z'
-    time_max= (target_date+ timedelta(days=1)).isoformat()+ 'Z'
+    time_min= target_date.isoformat()
+    time_max= (target_date+ timedelta(days=1)).isoformat()
 
     try:
             events_result = service.events().list(
-                calendarId=MY_CALENDAR_ID, 
+                calendarId=calender_id, 
                 timeMin=time_min,
                 timeMax=time_max,
                 singleEvents=True, 
@@ -44,10 +44,10 @@ def create_new_event(service, calendar_id, summary,start_time,end_time,descripti
           'summary':summary,
           'description':description,
           'start':{
-               'dateTime':start_time.isoformat()+ 'Z'
+               'dateTime':start_time.isoformat()
           },
           'end':{
-               'dateTime': end_time.isoformat()+ 'Z'
+               'dateTime': end_time.isoformat()
           }
      }
      print(f"\n--- Creating Event: '{summary}' ---")
@@ -64,12 +64,13 @@ def main():
 
     # --- Test Function 1: Check Events ---
     # Set the time to exactly midnight to get the whole day
-    target_date = datetime(2026, 12, 25) 
+    target_date = datetime(2026, 10, 6,tzinfo=ZoneInfo("Asia/Kolkata"))  #yyyy,mm,dd
     check_event(service, MY_CALENDAR_ID, target_date)
 
     # --- Test Function 2: Create Event ---
     # Create an event for tomorrow starting at 10:00 AM UTC and ending at 11:00 AM UTC
-    tomorrow = datetime.utcnow().replace(hour=10, minute=0, second=0, microsecond=0) + timedelta(days=1)
+    now = datetime.now(ZoneInfo("Asia/Kolkata"))
+    tomorrow = (now + timedelta(days=1)).replace(hour=10,minute=0,second=0,microsecond=0)
     event_start = tomorrow
     event_end = tomorrow + timedelta(hours=1)
     
