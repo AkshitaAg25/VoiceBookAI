@@ -16,9 +16,9 @@ def run_voicebook():
         if result["status"] == "ready":
 
             details = result["details"]
-            # return details
-            print("\nExtracted JSON:")
-            print(details)
+            return details
+            # print("\nExtracted JSON:")
+            # print(details)
 
             # Send the completed details to your booking system
             # handle_booking(details)
