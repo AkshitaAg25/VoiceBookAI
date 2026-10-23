@@ -16,7 +16,6 @@ def authenticate_service_account():
 def check_event(service,calender_id, target_date):
     time_min= target_date.isoformat()
     time_max= (target_date+ timedelta(days=1)).isoformat()
-
     try:
             events_result = service.events().list(
                 calendarId=calender_id, 
@@ -44,10 +43,11 @@ def check_event(service,calender_id, target_date):
 def create_new_event(service, calendar_id, summary,start_time,end_time,description=""):
      events=check_event(service, MY_CALENDAR_ID, start_time)
      slot_empty=True
-     for event in events:
-         if datetime.fromisoformat(event['start'].get('dateTime', event['start'].get('date')))==start_time:
-                slot_empty=False
-                print("alraedy booked")
+     if events:
+        for event in events:
+            if datetime.fromisoformat(event['start'].get('dateTime', event['start'].get('date')))==start_time:
+                    slot_empty=False
+                    print("alraedy booked")
      if slot_empty:
         event_body={
             'summary':summary,
@@ -67,14 +67,15 @@ def create_new_event(service, calendar_id, summary,start_time,end_time,descripti
         except Exception as e:
             print(f"Failed to create event: {e}")
 
-def delete_appointment(service, calender_id,target_date,summary):
+def delete_appointment(service, calender_id,target_date):
     events=check_event(service, calender_id,target_date)
     if not events:
         print("event does not exists")
     else:
         event_id=False
         for event in events:
-            if event["summary"]==summary:
+            event_time = datetime.fromisoformat(event["start"]["dateTime"])
+            if event_time==target_date:
                 event_id=event["id"]
         if event_id:
             try:
@@ -86,31 +87,31 @@ def delete_appointment(service, calender_id,target_date,summary):
             print("no such appointment exists")
      
 def main():
-    # Get the authenticated service object once
+#     # Get the authenticated service object once
     service = authenticate_service_account()
 
     # --- Test Function 1: Check Events ---
     # Set the time to exactly midnight to get the whole day
-    target_date = datetime(2026, 10, 7,tzinfo=ZoneInfo("Asia/Kolkata"))  #yyyy,mm,dd
+    target_date = datetime(2026, 10, 23,tzinfo=ZoneInfo("Asia/Kolkata"))  #yyyy,mm,dd
     check_event(service, MY_CALENDAR_ID, target_date)
 
-    # --- Test Function 2: Create Event ---
-    # Create an event for tomorrow starting at 10:00 AM 11:00 AM 
-    now = datetime.now(ZoneInfo("Asia/Kolkata"))
-    tomorrow = (now + timedelta(days=1)).replace(hour=10,minute=0,second=0,microsecond=0)
-    event_start = tomorrow
-    event_end = tomorrow + timedelta(hours=1)
-    create_new_event(
-        service=service, 
-        calendar_id=MY_CALENDAR_ID, 
-        summary="Automated Python Meeting", 
-        start_time=event_start, 
-        end_time=event_end,
-        description="Testing my new modular functions!"
-    )
-    #Function 3 delte appointment
-    summary="Automated Python Meeting"
-    delete_appointment(service, MY_CALENDAR_ID, target_date,summary)
+    # # --- Test Function 2: Create Event ---
+    # # Create an event for tomorrow starting at 10:00 AM 11:00 AM 
+    # now = datetime.now(ZoneInfo("Asia/Kolkata"))
+    # tomorrow = (now + timedelta(days=1)).replace(hour=10,minute=0,second=0,microsecond=0)
+    # event_start = tomorrow
+    # event_end = tomorrow + timedelta(hours=1)
+    # create_new_event(
+    #     service=service, 
+    #     calendar_id=MY_CALENDAR_ID, 
+    #     summary="Automated Python Meeting", 
+    #     start_time=event_start, 
+    #     end_time=event_end,
+    #     description="Testing my new modular functions!"
+    # )
+#     #Function 3 delte appointment
+#     summary="Automated Python Meeting"
+#     delete_appointment(service, MY_CALENDAR_ID, target_date,summary)
 
 
 if __name__ == '__main__':
