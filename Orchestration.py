@@ -32,9 +32,29 @@ elif(task=="delete"):
      
     calendartest.delete_appointment(service, calendar_id,time_of_appointment)
 elif(task=="check"):
+    appointment_date = details["date"]
+    target_date = datetime.strptime(
+        f"{appointment_date} {details['time']}",
+            "%Y-%m-%d %H:%M"
+        ).replace(tzinfo=ZoneInfo("Asia/Kolkata"))
     calendartest.check_event(service,calendar_id, target_date)
+
 elif(task=="reschedule"):
-    calendartest.delete_appointment(service, calendar_id,target_date,summary)
+    target_date=details["existing_date"]
+    time_of_appointment= datetime.strptime(
+        f"{target_date} {details['existing_time']}",
+        "%Y-%m-%d %H:%M"
+    ).replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+    calendartest.delete_appointment(service, calendar_id,time_of_appointment)
+
+    summary="Appointment for "+details["name"]
+    start_time = datetime.strptime(
+        f"{details["new_date"]} {details['new_time']}",
+        "%Y-%m-%d %H:%M"
+        ).replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+
+    end_time = start_time + timedelta(hours=1)
+
     calendartest.create_new_event(service, calendar_id, summary,start_time,end_time,description="")
 
 
