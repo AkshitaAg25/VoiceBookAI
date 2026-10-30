@@ -1,5 +1,13 @@
 from extractinfo import extract_appointment_info
 
+def process_request(conversation):
+
+    # Extract information from the complete conversation
+    result = extract_appointment_info(conversation)
+
+    return result
+
+
 def run_voicebook():
 
     # Get the initial request
@@ -11,7 +19,7 @@ def run_voicebook():
     while True:
 
         # Extract information from the full conversation
-        result = extract_appointment_info(conversation)
+        result = process_request(conversation)
 
         if result["status"] == "ready":
 
