@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoiceBook AI - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h2>VoiceBook AI</h2>
+        <p>Appointment Dashboard</p>
+    </header>
+    <main>
+        <h1>Welcome!</h1>
+        <p class="subtitle">
+            How can we help you today?
+        </p>
+        <div class="dashboard">
+            <section class="calendar-box">
+                <h2>Business Calendar</h2>
+                <p>View our available appointments.</p>
+                <div class="google-calendar">
+                    <iframe
+                        id="businessCalendar"
+                        width="100%"
+                        height="600"
+                        frameborder="0">
+                    </iframe>
+                </div>
+            </section>
+            <section class="request-box">
+                <h2>How can I assist you today?</h2>
+                <p>
+                    Tell us what appointment you would like to book, reschedule or cancel.
+                </p>
+                <textarea
+                id="userRequest"
+                placeholder="Example: I want to book an appointment for tomorrow at 11 AM..."></textarea>
+                <button id="sendButton">Send Request</button>
+
+                <div class="response-box">
+                    <h3>VoiceBook AI Response</h3>
+                    <p id="aiResponse">
+                        The assistant's response appears here.
+                    </p>
+                </div>
+            </section>
+        </div>
+    </main>
+    <script src="config.js"></script>
+
+<script>
+    document.getElementById("businessCalendar").src = calendarURL;
+
+    const sendButton = document.getElementById("sendButton");
+    const userRequest = document.getElementById("userRequest");
+    const aiResponse = document.getElementById("aiResponse");
+
+    sendButton.addEventListener("click", async function() {
+
+        const message = userRequest.value.trim();
+
+        if (message === "") {
+            aiResponse.textContent = "Please enter your appointment request.";
+            return;
+        }
+
+        try {
+            const response = await fetch("/api/request", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: message
+                })
+            });
+
+            const result = await response.json();
+
+            aiResponse.textContent = result.message;
+
+            if (result.status === "missing_info") {
+                userRequest.value = "";
+            }
+            else if (result.status === "completed") {
+                userRequest.value = "";
+            }
+
+        } catch (error) {
+            aiResponse.textContent = "Unable to connect to the server.";
+            console.error(error);
+        }
+    });
+</script>
+</body>
+</html>
